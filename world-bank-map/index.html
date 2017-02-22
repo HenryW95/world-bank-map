@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <link rel="stylesheet" href="Leaflet.label-master/libs/leaflet/leaflet.css" /> <!-- leaflet stylesheet -->
+ <link rel="stylesheet" href="Leaflet.label-master/dist/leaflet.label.css" />
+ 
+ <script src="Leaflet.label-master/libs/leaflet/leaflet.js"></script> <!-- leaflet library -->
+ <script src="Leaflet.label-master/dist/leaflet.label.js"></script>
+ 
+ <script src="world.js"></script> <!-- GeoJson file -->
+ 
+ <style>
+	body {
+		margin: 0;
+		background-color:#f3f3f3;
+	}
+	
+	h1 {
+		font-family: Tahoma, Verdana, Arial, sans-serif;
+		font-weight: normal;
+		margin: 0px 0px 0px 0px;
+		padding: 10px 0px 10px 0px;
+	}
+ </style>
+ 
+ <!-- "instructions" box -->
+ <div id="InstrucBox" style = "
+						width: 410px;
+						background-color: rgba(255, 255, 255, 0.7) ;
+						border-radius: 10px;
+						box-shadow: 0 0 10px 2px #C9C9C9;
+						font-weight: bold;
+						color: #505050;
+						margin: 10px;
+						padding: 5px;
+						text-align: left;">
+
+	Click on any country to view its World Bank statistics in a new window.
+ </div>
+
+</head>
+ 
+<body>
+
+<div align="center" style="margin: 0 auto; min-width:500px; background-color:#f3f3f3; margin-bottom: 0px;">
+	<h1 style="border-bottom: 1px solid black">
+		World Bank Country Profiles
+	</h1>
+</div>
+
+<!-- Canvas location -->
+<div id="mapid" style="max-width:2000px; min-width:500px; height:calc(93.5vh); margin: 0 auto; padding: 0px; margin-top:0px; border-bottom: 1px solid black;"></div>
+ 
+
+<script>
+
+var mymap = L.map('mapid').setView([42, 0], 3);
+	// Background tiles:
+	L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+		attribution: 'Tiles from <a href="http://cartodb.com/attributions">CartoDB</a> | Created by Henry Whipps',
+		subdomains: 'abcd',
+		maxZoom: 19
+		}).addTo(mymap);
+
+var Instructions = L.control({position: 'topright'});
+
+// Add the instructions box
+Instructions.onAdd = function(mymap) {
+	var div =  document.getElementById("InstrucBox");
+	return div;
+	};
+	
+Instructions.addTo(mymap);
+
+// stylize countries
+function PolyStyle(feature) {
+	return {
+		weight: 0,
+		opacity: 1,
+		//color: 'gray',
+		//dashArray: '3',
+		fillOpacity: '0',
+	};
+}
+
+// highlight features on mouseover
+function highlightFeature(e) {
+    var layer = e.target;
+
+    layer.setStyle({
+        weight: 1,
+        color: 'gray',
+        //dashArray: '3',
+        fillOpacity: 0.4,
+		fillColor: '#FF0000'
+    });
+	
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
+}
+
+
+var geojson;
+
+function resetHighlight(e) {
+    geojson.resetStyle(e.target);
+}
+
+// Open World Bank data
+function OpenLink(e)
+	{window.open(
+		"http://data.worldbank.org/country/" + e.target.feature.properties.wb
+	);}
+
+// On: mouseover, mouseout, click
+function onEachFeature(feature, layer) {
+    layer.on({
+		mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: OpenLink
+    });
+	layer.bindLabel(feature.properties.admin);
+}
+
+// Add geojson country data
+geojson = L.geoJson(CountryData, {
+	style: PolyStyle,
+	onEachFeature: onEachFeature
+}).addTo(mymap);
+
+</script>
+
+</body>
+</html>
